@@ -113,14 +113,53 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
+    def do_create(self, arg):
+        """ Create an object of any class """
+    params = arg.split()
+    if len(params) < 2:
+        print("Error: Insufficient parameters.")
+        return
+
+    class_name = params[0]
+    class_params = params[1:]
+
+    # Prepare the arguments for object creation
+    kwargs = {}
+    for param in class_params:
+        if "=" not in param:
+            print(f"Warning: Invalid parameter '{param}'. Skipping.")
+            continue
+
+        key, value = param.split("=", 1)
+        value = value.strip()
+
+        if value.startswith('"') and value.endswith('"'):
+            # String value
+            value = value[1:-1].replace("_", " ").replace('\\"', '"')
+        elif "." in value:
+            # Float value
+            try:
+                value = float(value)
+            except ValueError:
+                print(f"Warning: Invalid float value '{value}'. Skipping.")
+                continue
+        else:
+            # Integer value
+            try:
+                value = int(value)
+            except ValueError:
+                print(f"Warning: Invalid integer value '{value}'. Skipping.")
+                continue
+
+        kwargs[key] = value
+
+    try:
+        # Create an instance of the specified class with the provided arguments
+        obj = globals()[class_name](**kwargs)
+        print(f"Object of class '{class_name}' created successfully.")
+    except KeyError:
+        print(f"Error: Class '{class_name}' not found.")
+
         new_instance = HBNBCommand.classes[args]()
         storage.save()
         print(new_instance.id)
